@@ -2,16 +2,16 @@
 // Submenu:
 // Author: Jace Regenbrecht
 // Title: Filmic Tonemapping Operators
-// Version: 1.0
+// Version: 1.1
 // Desc:
 // Keywords:
-// URL:
+// URL: https://github.com/Zackin5/Filmic-Tonemapping-Plugin
 // Help:
 #region UICode
 CheckboxControl Amount1 = true; // [0,1] Gamma Correction
 DoubleSliderControl Amount2 = 2.2; // [0,5] Pre Gamma
 DoubleSliderControl Amount3 = 2.2; // [0,5] Post Gamma
-ListBoxControl Amount4 = 0; // Tonemapping Model|Reinhard RGB Simple|Reinhard RGB Full|Reinhard Luminance Simple|Reinhard Luminance Full|Haarm-Peter Duiker Simple|Uncharted 2
+ListBoxControl Amount4 = 0; // Tonemapping Model|Reinhard RGB Simple|Reinhard RGB Full|Reinhard Luminance Simple|Reinhard Luminance Full|Haarm-Peter Duiker Simple|Uncharted 2 GDC|Uncharted 2 Blog
 DoubleSliderControl Amount5 = 5; // [1,20] White Value
 DoubleSliderControl Amount6 = 1; // [1,20] Pre Exposure
 #endregion
@@ -36,26 +36,19 @@ private double TonemapHPD(double color)
     return (x*(6.2*x+.5))/(x*(6.2*x+1.7)+0.06);
 }
 
-private double TonemapUncharted2(double color, double W)
+private double TonemapUncharted2(double color, double W, double ShoulderStr, double LinStr, double LinAng, double ToeStr, double ToeNum, double ToeDenom)
 {
     double ExposureBias = 2.0;
     
-    double curr = TonemapUncharted2_(ExposureBias*color);
+    double curr = TonemapUncharted2_(ExposureBias*color, ShoulderStr, LinStr, LinAng, ToeStr, ToeNum, ToeDenom);
     
-    double whiteScale = 1.0f/TonemapUncharted2_(W);
+    double whiteScale = 1.0f/TonemapUncharted2_(W, ShoulderStr, LinStr, LinAng, ToeStr, ToeNum, ToeDenom);
     
     return curr*whiteScale;
 }
 
-private double TonemapUncharted2_(double x)
+private double TonemapUncharted2_(double x, double A, double B, double C, double D, double E, double F)
 {
-    double A = 0.15; // Shoulder strength
-    double B = 0.50; // Linear strength
-    double C = 0.10; // Linear angle
-    double D = 0.20; // Toe strength
-    double E = 0.02; // Toe numerator
-    double F = 0.30; // Toe denominator
-    
     return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
 
@@ -141,11 +134,33 @@ void Render(Surface dst, Surface src, Rectangle rect)
                     G = TonemapHPD(G);
                     B = TonemapHPD(B);
                     break;
-                // Uncharted 2
+                // Uncharted 2 GDC Values
                 case 5:
-                    R = TonemapUncharted2(R, Amount5);
-                    G = TonemapUncharted2(G, Amount5);
-                    B = TonemapUncharted2(B, Amount5);
+                {
+                    double uA = 0.22; // Shoulder strength
+                    double uB = 0.30; // Linear strength
+                    double uC = 0.10; // Linear angle
+                    double uD = 0.20; // Toe strength
+                    double uE = 0.01; // Toe numerator
+                    double uF = 0.30; // Toe denominator
+                    R = TonemapUncharted2(R, Amount5, uA, uB, uC, uD, uE, uF);
+                    G = TonemapUncharted2(G, Amount5, uA, uB, uC, uD, uE, uF);
+                    B = TonemapUncharted2(B, Amount5, uA, uB, uC, uD, uE, uF);
+                }
+                    break;
+                // Uncharted 2 Blog Values
+                case 6:
+                {
+                    double uA = 0.15; // Shoulder strength
+                    double uB = 0.50; // Linear strength
+                    double uC = 0.10; // Linear angle
+                    double uD = 0.20; // Toe strength
+                    double uE = 0.02; // Toe numerator
+                    double uF = 0.30; // Toe denominator
+                    R = TonemapUncharted2(R, Amount5, uA, uB, uC, uD, uE, uF);
+                    G = TonemapUncharted2(G, Amount5, uA, uB, uC, uD, uE, uF);
+                    B = TonemapUncharted2(B, Amount5, uA, uB, uC, uD, uE, uF);
+                }
                     break;
                 default:
                     break;
