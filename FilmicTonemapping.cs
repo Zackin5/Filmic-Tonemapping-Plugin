@@ -9,9 +9,9 @@
 // Help:
 #region UICode
 CheckboxControl Amount1 = true; // [0,1] Gamma Correction
-DoubleSliderControl Amount2 = 2.2; // [0,5] Pre Gamma
-DoubleSliderControl Amount3 = 2.2; // [0,5] Post Gamma
-ListBoxControl Amount4 = 0; // Tonemapping Model|Reinhard RGB Simple|Reinhard RGB Full|Reinhard Luminance Simple|Reinhard Luminance Full|Haarm-Peter Duiker Simple|Uncharted 2 GDC|Uncharted 2 Blog
+DoubleSliderControl Amount2 = 2.2; // [1,5] Pre Gamma
+DoubleSliderControl Amount3 = 2.2; // [1,5] Post Gamma
+ListBoxControl Amount4 = 0; // Tonemapping Model|Reinhard RGB Simple|Reinhard RGB Full|Reinhard Luminance Simple|Reinhard Luminance Full|Haarm-Pieter Duiker Simple|Uncharted 2 GDC|Uncharted 2 Blog
 DoubleSliderControl Amount5 = 5; // [1,20] White Value
 DoubleSliderControl Amount6 = 1; // [1,20] Pre Exposure
 #endregion
@@ -128,7 +128,7 @@ void Render(Surface dst, Surface src, Rectangle rect)
                     G *= scale;
                     B *= scale;
                     break;
-                // Haarm-Peter Duiker (optimized)
+                // Haarm-Pieter Duiker (optimized)
                 case 4:
                     R = TonemapHPD(R);
                     G = TonemapHPD(G);
