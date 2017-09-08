@@ -11,7 +11,7 @@
 CheckboxControl Amount1 = true; // [0,1] Gamma Correction
 DoubleSliderControl Amount2 = 2.2; // [1,5] Pre Gamma
 DoubleSliderControl Amount3 = 2.2; // [1,5] Post Gamma
-ListBoxControl Amount4 = 0; // Tonemapping Model|Reinhard RGB Simple|Reinhard RGB Full|Reinhard Luminance Simple|Reinhard Luminance Full|Haarm-Pieter Duiker Simple|Uncharted 2 GDC|Uncharted 2 Blog
+ListBoxControl Amount4 = 0; // Tonemapping Model|Reinhard RGB Simple|Reinhard RGB Full|Reinhard Luminance Simple|Reinhard Luminance Full|Haarm-Pieter Duiker Simple|Uncharted 2 GDC|Uncharted 2 Blog|ACES Narkowicz
 DoubleSliderControl Amount5 = 5; // [1,20] White Value
 DoubleSliderControl Amount6 = 1; // [1,20] Pre Exposure
 #endregion
@@ -20,6 +20,18 @@ DoubleSliderControl Amount6 = 1; // [1,20] Pre Exposure
 // https://imdoingitwrong.wordpress.com/2010/08/19/why-reinhard-desaturates-my-blacks-3/
 // http://filmicworlds.com/blog/filmic-tonemapping-operators/
 
+// Misc functions
+private double Clamp(double value, double min, double max)
+{
+    if(value > max)
+        return max;
+    else if(value < min)
+        return min;
+    else
+        return value;
+}
+
+// Tonemapping functions
 private double TonemapReinhard(double color)
 {
     return color/(color+1.0);
@@ -52,16 +64,12 @@ private double TonemapUncharted2_(double x, double A, double B, double C, double
     return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
 
-private double Clamp(double value, double min, double max)
+private double TonemapACESNark(double x, double A, double B, double C, double D, double E)
 {
-    if(value > max)
-        return max;
-    else if(value < min)
-        return min;
-    else
-        return value;
-}
+    return Clamp((x*(A*x+B))/(x*(C*x+D)+E),0.0,1.0);
+} 
 
+// Main render function
 void Render(Surface dst, Surface src, Rectangle rect)
 {
     ColorBgra CurrentPixel;
@@ -160,6 +168,19 @@ void Render(Surface dst, Surface src, Rectangle rect)
                     R = TonemapUncharted2(R, Amount5, uA, uB, uC, uD, uE, uF);
                     G = TonemapUncharted2(G, Amount5, uA, uB, uC, uD, uE, uF);
                     B = TonemapUncharted2(B, Amount5, uA, uB, uC, uD, uE, uF);
+                }
+                    break;
+                // ACES Knarkowicz implementation
+                case 7:
+                {
+                    double anA = 2.51;
+                    double anB = 0.03;
+                    double anC = 2.43;
+                    double anD = 0.59;
+                    double anE = 0.14;
+                    R = TonemapACESNark(R, anA, anB, anC, anD, anE);
+                    G = TonemapACESNark(G, anA, anB, anC, anD, anE);
+                    B = TonemapACESNark(B, anA, anB, anC, anD, anE);
                 }
                     break;
                 default:
