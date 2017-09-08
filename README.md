@@ -18,6 +18,7 @@ This plugin offers the following usage parameters:
    * **Haarm-Peter Duiker Simple** - simple Haarm-Pieter Duiker curve  
    * **Uncharted 2 GDC** - Uncharted 2 model using parameter values from Hable's GDC talk, supports white values  
    * **Uncharted 2 Blog** - Uncharted 2 model using parameter values from Hable's blod post, supports white values  
+   * **ACES Narkowicz** - ACES curve by Krzysztof Narkowicz
 * **White Value** - color value which will be mapped to full white in final results 
 * **Pre Exposure** - Amount of image exposure to apply before tonemapping
 
