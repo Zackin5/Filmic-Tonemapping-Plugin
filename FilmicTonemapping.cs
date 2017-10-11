@@ -11,7 +11,7 @@
 CheckboxControl Amount1 = true; // [0,1] Gamma Correction
 DoubleSliderControl Amount2 = 2.2; // [1,5] Pre Gamma
 DoubleSliderControl Amount3 = 2.2; // [1,5] Post Gamma
-ListBoxControl Amount4 = 1; // Tonemapping Model|Reinhard RGB Simple|Reinhard RGB Full|Reinhard Luminance Simple|Reinhard Luminance Full|Uncharted 2 GDC|Uncharted 2 Blog|Haarm-Pieter Duiker Simple|ACES Narkowicz|ACES Baking Lab
+ListBoxControl Amount4 = 4; // Tonemapping Model|Reinhard RGB Simple|Reinhard RGB Full|Reinhard Luminance Simple|Reinhard Luminance Full|Uncharted 2 GDC|Uncharted 2 Blog|Haarm-Pieter Duiker Simple|ACES Narkowicz|ACES Baking Lab
 DoubleSliderControl Amount5 = 5; // [1,20] White Value
 DoubleSliderControl Amount6 = 1; // [1,20] Pre Exposure
 CheckboxControl Amount7 = false; // [0,1] Display Clipping
@@ -215,7 +215,7 @@ void Render(Surface dst, Surface src, Rectangle rect)
                 // Uncharted 2 GDC Values
                 case 4:
                 {
-                    double uA = 0.22; // Shoulder strength
+                    double uA = 0.20; // Shoulder strength
                     double uB = 0.30; // Linear strength
                     double uC = 0.10; // Linear angle
                     double uD = 0.20; // Toe strength
@@ -272,8 +272,8 @@ void Render(Surface dst, Surface src, Rectangle rect)
                     break;
             }
             
-            // Post gamma adjustment
-            if(Amount1 && Amount3 >= 1 && Amount4 != 4)
+            // Post gamma adjustment if enabled and not using the HPD algorithm
+            if(Amount1 && Amount3 >= 1 && Amount4 != 6)
             {
                 R = Math.Pow(R,1/Amount3);
                 G = Math.Pow(G,1/Amount3);
