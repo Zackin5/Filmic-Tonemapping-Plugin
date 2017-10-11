@@ -11,9 +11,10 @@
 CheckboxControl Amount1 = true; // [0,1] Gamma Correction
 DoubleSliderControl Amount2 = 2.2; // [1,5] Pre Gamma
 DoubleSliderControl Amount3 = 2.2; // [1,5] Post Gamma
-ListBoxControl Amount4 = 0; // Tonemapping Model|Reinhard RGB Simple|Reinhard RGB Full|Reinhard Luminance Simple|Reinhard Luminance Full|Uncharted 2 GDC|Uncharted 2 Blog|Haarm-Pieter Duiker Simple|ACES Narkowicz|ACES Baking Lab
+ListBoxControl Amount4 = 1; // Tonemapping Model|Reinhard RGB Simple|Reinhard RGB Full|Reinhard Luminance Simple|Reinhard Luminance Full|Uncharted 2 GDC|Uncharted 2 Blog|Haarm-Pieter Duiker Simple|ACES Narkowicz|ACES Baking Lab
 DoubleSliderControl Amount5 = 5; // [1,20] White Value
 DoubleSliderControl Amount6 = 1; // [1,20] Pre Exposure
+CheckboxControl Amount7 = false; // [0,1] Display Clipping
 #endregion
 
 // equation sources: 
@@ -29,6 +30,29 @@ private double Clamp(double value, double min, double max)
         return min;
     else
         return value;
+}
+
+private ColorBgra CheckClipping(ColorBgra color)
+{
+    ColorBgra whiteClipColor, blackClipColor;
+    double R, G, B;
+    
+    // Define clipping colours
+    whiteClipColor = ColorBgra.Red;
+    blackClipColor = ColorBgra.Blue;
+    
+    // Convert int values to doubles
+    R = ((double)color.R);
+    G = ((double)color.G);
+    B = ((double)color.B);
+    
+    // Test for clipping
+    if( R >= 254.0 & G >= 254.0 & B >= 254.0 )
+        return whiteClipColor;
+    else if( R <= 0.0 & G <= 0.0 & B <= 0.0 )
+        return blackClipColor;
+        
+    return color;
 }
 
 private double[,] matrixMult(double[,] a, double[,] b)
@@ -263,6 +287,10 @@ void Render(Surface dst, Surface src, Rectangle rect)
             
             // Convert back to Bgra int
             CurrentPixel = ColorBgra.FromBgra((byte)B, (byte)G, (byte)R, CurrentPixel.A);
+            
+            // Check for clipping if enabled
+            if(Amount7)
+                CurrentPixel = CheckClipping(CurrentPixel);
             
             // Render to image pixels
             dst[x,y] = CurrentPixel;
