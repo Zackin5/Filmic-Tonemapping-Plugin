@@ -11,7 +11,7 @@
 CheckboxControl Amount1 = true; // [0,1] Gamma Correction
 DoubleSliderControl Amount2 = 2.2; // [1,5] Pre Gamma
 DoubleSliderControl Amount3 = 2.2; // [1,5] Post Gamma
-ListBoxControl Amount4 = 0; // Tonemapping Model|Reinhard RGB Simple|Reinhard RGB Full|Reinhard Luminance Simple|Reinhard Luminance Full|Haarm-Pieter Duiker Simple|Uncharted 2 GDC|Uncharted 2 Blog|ACES Narkowicz
+ListBoxControl Amount4 = 0; // Tonemapping Model|Reinhard RGB Simple|Reinhard RGB Full|Reinhard Luminance Simple|Reinhard Luminance Full|Uncharted 2 GDC|Uncharted 2 Blog|Haarm-Pieter Duiker Simple|ACES Narkowicz|ACES Baking Lab
 DoubleSliderControl Amount5 = 5; // [1,20] White Value
 DoubleSliderControl Amount6 = 1; // [1,20] Pre Exposure
 #endregion
@@ -29,6 +29,18 @@ private double Clamp(double value, double min, double max)
         return min;
     else
         return value;
+}
+
+private double[,] matrixMult(double[,] a, double[,] b)
+{
+    double[,] product = new double[a.GetLength(0), b.GetLength(1)];
+    
+    for (int x = 0; x < a.GetLength(0); x++)
+        for (int y = 0; y < b.GetLength(1); y++)
+            for (int i = 0; i < a.GetLength(1) || i < a.GetLength(0); i++)
+                product[x,y] += a[x,i] * b[i,y];
+                
+    return product;
 }
 
 // Tonemapping functions
@@ -69,6 +81,46 @@ private double TonemapACESNark(double x, double A, double B, double C, double D,
     return Clamp((x*(A*x+B))/(x*(C*x+D)+E),0.0,1.0);
 } 
 
+private ColorBgra TonemapACESBakingLab(double R, double G, double B)
+{
+    // TEMP disable while I work on actually maxing this work
+    /*double[,] color = new double[3,1] {{R}, {G}, {B}};
+    double[] result = new double[] {0,0,0};
+    
+    double[,] ACESInput = new double[3,3] {
+        {0.59719f, 0.35458f, 0.04823f},
+        {0.07600f, 0.90834f, 0.01566f},
+        {0.02840f, 0.13383f, 0.83777f}
+    };
+    
+    double[,] ACESOutput = new double[3,3] {
+        { 1.60475f, -0.53108f, -0.07367f},
+        {-0.10208f,  1.10813f, -0.00605f},
+        {-0.00327f, -0.07276f,  1.07302f}
+    };
+    
+    color = matrixMult(ACESInput, color);
+    
+    // RRTAndODFit
+    double[,] a, b;
+    a = new double[3,1];
+    b = new double[3,1];
+    
+    a = color * (color + 0.0245786f) - 0.000090537f;
+    
+    color = a / b;
+    
+    color = matrixMult(ACESOutput, color);
+    
+    result[0] = color[0,0];
+    result[1] = color[1,0];
+    result[2] = color[2,0];
+    
+    return result;*/
+    
+    return ColorBgra.FromBgra((byte)B, (byte)G, (byte)R, 1);;
+} 
+
 // Main render function
 void Render(Surface dst, Surface src, Rectangle rect)
 {
@@ -88,7 +140,7 @@ void Render(Surface dst, Surface src, Rectangle rect)
             B = ((double)CurrentPixel.B)/255.0;
             
             // Exposure adjustment
-            if(Amount5 > 1)
+            if(Amount6 > 1)
             {
                 R *= Amount6;
                 G *= Amount6;
@@ -136,14 +188,8 @@ void Render(Surface dst, Surface src, Rectangle rect)
                     G *= scale;
                     B *= scale;
                     break;
-                // Haarm-Pieter Duiker (optimized)
-                case 4:
-                    R = TonemapHPD(R);
-                    G = TonemapHPD(G);
-                    B = TonemapHPD(B);
-                    break;
                 // Uncharted 2 GDC Values
-                case 5:
+                case 4:
                 {
                     double uA = 0.22; // Shoulder strength
                     double uB = 0.30; // Linear strength
@@ -157,7 +203,7 @@ void Render(Surface dst, Surface src, Rectangle rect)
                 }
                     break;
                 // Uncharted 2 Blog Values
-                case 6:
+                case 5:
                 {
                     double uA = 0.15; // Shoulder strength
                     double uB = 0.50; // Linear strength
@@ -170,6 +216,12 @@ void Render(Surface dst, Surface src, Rectangle rect)
                     B = TonemapUncharted2(B, Amount5, uA, uB, uC, uD, uE, uF);
                 }
                     break;
+                // Haarm-Pieter Duiker (optimized)
+                case 6:
+                    R = TonemapHPD(R);
+                    G = TonemapHPD(G);
+                    B = TonemapHPD(B);
+                    break;
                 // ACES Knarkowicz implementation
                 case 7:
                 {
@@ -181,6 +233,15 @@ void Render(Surface dst, Surface src, Rectangle rect)
                     R = TonemapACESNark(R, anA, anB, anC, anD, anE);
                     G = TonemapACESNark(G, anA, anB, anC, anD, anE);
                     B = TonemapACESNark(B, anA, anB, anC, anD, anE);
+                }
+                    break;
+                // ACES Baking Lab implementation
+                case 8:
+                {
+                    ColorBgra ACESColors = TonemapACESBakingLab(R, G, B);
+                    R = ACESColors.R;
+                    G = ACESColors.G;
+                    B = ACESColors.B;
                 }
                     break;
                 default:
