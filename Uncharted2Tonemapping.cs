@@ -2,7 +2,7 @@
 // Submenu:
 // Author: Jace Regenbrecht
 // Title: Uncharted 2 Tonemapping
-// Version: 1.0
+// Version: 1.1
 // Desc:
 // Keywords:
 // URL: https://github.com/Zackin5/Filmic-Tonemapping-Plugin
@@ -109,7 +109,7 @@ void Render(Surface dst, Surface src, Rectangle rect)
             }
             
             // Do tonemapping on RGB or luminance
-            if(Amount12)
+            if(!Amount12)
             {
                 R = TonemapUncharted2(R, Amount11, Amount5, Amount6, Amount7, Amount8, Amount9, Amount10);
                 G = TonemapUncharted2(G, Amount11, Amount5, Amount6, Amount7, Amount8, Amount9, Amount10);
